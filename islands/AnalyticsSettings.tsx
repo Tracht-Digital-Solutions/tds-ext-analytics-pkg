@@ -93,12 +93,12 @@ export default function AnalyticsSettings() {
         <legend>Messung je Site</legend>
         {SITES.map((s) => (
           <label key={s.key} className="tds-toggle-row">
+            <span>{s.label}</span>
             <input
               type="checkbox"
               checked={flag(`site_${s.key}`)}
               onChange={() => set(`site_${s.key}`, flag(`site_${s.key}`) ? "0" : "1")}
             />
-            <span>{s.label}</span>
           </label>
         ))}
       </fieldset>
@@ -115,8 +115,8 @@ export default function AnalyticsSettings() {
       </label>
       <p className="marginalia">Danach werden einzelne Besuche gelöscht; es bleiben anonyme Tagessummen.</p>
       <label className="tds-toggle-row">
-        <input type="checkbox" checked={flag("geoip_enabled")} onChange={() => set("geoip_enabled", flag("geoip_enabled") ? "0" : "1")} />
         <span>Land aus der IP-Adresse ermitteln (lokale DB-IP-Datenbank, die Adresse wird nicht gespeichert)</span>
+        <input type="checkbox" checked={flag("geoip_enabled")} onChange={() => set("geoip_enabled", flag("geoip_enabled") ? "0" : "1")} />
       </label>
       <label className="tds-field-row">
         <span>Ausgeschlossene Pfade (ein Präfix je Zeile)</span>

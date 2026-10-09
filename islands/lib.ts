@@ -119,6 +119,26 @@ export const DEVICE_LABELS: Record<string, string> = {
   desktop: "Desktop",
 };
 
+export const BROWSER_LABELS: Record<string, string> = {
+  chrome: "Chrome",
+  safari: "Safari",
+  firefox: "Firefox",
+  edge: "Edge",
+  opera: "Opera",
+  samsung: "Samsung Internet",
+  other: "Andere",
+};
+
+export const OS_LABELS: Record<string, string> = {
+  windows: "Windows",
+  macos: "macOS",
+  ios: "iOS",
+  android: "Android",
+  linux: "Linux",
+  chromeos: "ChromeOS",
+  other: "Andere",
+};
+
 const regionNames = (() => {
   try {
     return new Intl.DisplayNames(["de"], { type: "region" });

@@ -2,8 +2,10 @@ import { useEffect, useState, type ReactNode } from "react";
 import { Skeleton } from "@tracht-digital-solutions/tds-shared/components";
 import { AreaChart, BarList, type BarRow } from "./charts";
 import {
+  BROWSER_LABELS,
   CHANNEL_LABELS,
   DEVICE_LABELS,
+  OS_LABELS,
   SITES,
   addDays,
   berlinDay,
@@ -362,10 +364,10 @@ function SourcesTab({ filter }: { filter: Filter }) {
               <BarList empty="Keine Besuche." rows={rows(d.device, (k) => label(DEVICE_LABELS, k))} />
             </Card>
             <Card title="Browser">
-              <BarList empty="Keine Besuche." rows={rows(d.browser)} />
+              <BarList empty="Keine Besuche." rows={rows(d.browser, (k) => label(BROWSER_LABELS, k))} />
             </Card>
             <Card title="Betriebssysteme">
-              <BarList empty="Keine Besuche." rows={rows(d.os)} />
+              <BarList empty="Keine Besuche." rows={rows(d.os, (k) => label(OS_LABELS, k))} />
             </Card>
             <Card title="Sprache">
               <BarList empty="Keine Besuche." rows={rows(d.lang, (k) => (k === "en" ? "Englisch" : k === "de" ? "Deutsch" : k))} />
