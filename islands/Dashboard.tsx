@@ -159,7 +159,7 @@ function Section<T>({ report, children }: { report: Loaded<T & Meta>; children: 
 
 function Card({ title, children, note }: { title: string; children: ReactNode; note?: string }) {
   return (
-    <section className="tds-card tds-stack">
+    <section className="tds-card tds-stack p-4">
       <h2>{title}</h2>
       {note ? <p className="marginalia">{note}</p> : null}
       {children}
@@ -297,7 +297,8 @@ function PagesTab({ filter }: { filter: Filter }) {
             ) : (
               <ul className="tds-list">
                 {d.pages.slice(0, 15).map((p) => (
-                  <li key={p.path} className="tds-list__row tds-stack tds-stack--tight">
+                  <li key={p.path} className="tds-list__row">
+                    <div className="tds-stack tds-stack--tight" style={{ flex: "1 1 100%", minWidth: 0 }}>
                     <strong style={{ overflowWrap: "anywhere" }}>{p.path}</strong>
                     <span className="tds-row">
                       {(["25", "50", "75", "100"] as const).map((m) => (
@@ -313,6 +314,7 @@ function PagesTab({ filter }: { filter: Filter }) {
                         rows={p.sections.map((s) => ({ key: s.id, label: `#${s.id}`, value: s.count, hint: pct(s.share) }))}
                       />
                     ) : null}
+                    </div>
                   </li>
                 ))}
               </ul>

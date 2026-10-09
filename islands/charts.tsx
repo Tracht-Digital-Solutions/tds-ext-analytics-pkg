@@ -117,7 +117,10 @@ export function BarList({ rows, empty, max }: { rows: BarRow[]; empty: string; m
   return (
     <ul className="tds-list">
       {rows.map((r) => (
-        <li key={r.key} className="tds-list__row tds-stack tds-stack--tight">
+        <li key={r.key} className="tds-list__row">
+          {/* A row is a wrapping flex line with centred items; the bar needs
+              the full width, so the content sits in one full-width stack. */}
+          <span className="tds-stack tds-stack--tight" style={{ flex: "1 1 100%", minWidth: 0 }}>
           <span className="tds-row tds-row--between">
             <span style={{ overflowWrap: "anywhere" }}>{r.label}</span>
             <span>
@@ -143,6 +146,7 @@ export function BarList({ rows, empty, max }: { rows: BarRow[]; empty: string; m
                 background: "var(--color-primary)",
               }}
             />
+          </span>
           </span>
         </li>
       ))}
