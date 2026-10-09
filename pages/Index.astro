@@ -1,0 +1,14 @@
+---
+// Besucher-Statistik — injected into the host build via the manifest's route
+// slot (`/statistik`), wrapped in the host layout.
+import Dashboard from "../islands/Dashboard.tsx";
+---
+
+<section class="tds-page">
+  <div class="tds-page__head">
+    <p class="tds-page__eyebrow">Öffentliche Sites</p>
+    <h1 class="tds-page__title">Besucher-Statistik</h1>
+    <p class="tds-page__lede">Woher Besucher kommen, was sie anklicken und wo sie abspringen — nur mit Einwilligung erfasst.</p>
+  </div>
+  <Dashboard client:load />
+</section>

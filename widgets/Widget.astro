@@ -1,0 +1,10 @@
+---
+// Dashboard card: visits of the last seven days. `client:visible`, not
+// `client:load` — a switched-off widget is display:none and must not fetch.
+import WidgetBody from "../islands/WidgetBody.tsx";
+---
+
+<article class="tds-widget">
+  <h3 class="tds-widget__title">Besuche (7 Tage)</h3>
+  <WidgetBody client:visible />
+</article>
