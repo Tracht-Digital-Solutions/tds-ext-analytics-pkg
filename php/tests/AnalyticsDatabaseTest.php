@@ -241,6 +241,25 @@ final class AnalyticsDatabaseTest extends TestCase
         self::assertEquals($after[0], $r->overview($day, $today, null)['totals']);
     }
 
+    public function testReadsCountPageViewsPerPathForOneSite(): void
+    {
+        $now = time();
+        $this->send(1, 1, [['t' => 'pageview', 'p' => '/seo-grundlagen'], ['t' => 'pageview', 'p' => '/en/seo-basics']], $now, [], 'blog');
+        $this->send(2, 2, [['t' => 'pageview', 'p' => '/seo-grundlagen']], $now, [], 'blog');
+        $this->send(3, 3, [['t' => 'pageview', 'p' => '/seo-grundlagen']], $now, [], 'landing');
+
+        $req = (new ServerRequestFactory())->createServerRequest('GET', '/content/analytics/reads')
+            ->withQueryParams(['site' => 'blog', 'days' => '30']);
+        $body = json_decode((string) AnalyticsModule::reads($this->c, $req, new Response(), $now)->getBody(), true);
+        self::assertSame([['path' => '/seo-grundlagen', 'views' => 2], ['path' => '/en/seo-basics', 'views' => 1]], $body['reads']);
+
+        $en = AnalyticsModule::reads($this->c, $req->withQueryParams(['site' => 'blog', 'prefix' => '/en/']), new Response(), $now);
+        self::assertSame([['path' => '/en/seo-basics', 'views' => 1]], json_decode((string) $en->getBody(), true)['reads']);
+
+        $bad = AnalyticsModule::reads($this->c, $req->withQueryParams([]), new Response(), $now);
+        self::assertSame(400, $bad->getStatusCode());
+    }
+
     public function testForgetErasesOneVisitorsRawRows(): void
     {
         $now = time();

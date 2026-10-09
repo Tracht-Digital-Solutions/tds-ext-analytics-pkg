@@ -25,6 +25,7 @@ use Tds\Frontend\Contract\ModuleHttp;
 use Tds\Frontend\Contract\PermissionDef;
 use Tds\Frontend\Contract\SettingDef;
 use Tds\Frontend\Contract\SettingsStore;
+use Tds\Frontend\Contract\SiteKeyProtected;
 use Tds\Frontend\Contract\UserContext;
 
 /**
@@ -42,7 +43,7 @@ use Tds\Frontend\Contract\UserContext;
  * not there) all answer 204. Only a malformed body (400) or a foreign origin
  * (403) answers otherwise, which is what someone debugging a site needs.
  */
-final class AnalyticsModule extends AbstractModule implements ApiDocSource
+final class AnalyticsModule extends AbstractModule implements ApiDocSource, SiteKeyProtected
 {
     use ModuleHttp;
 
@@ -107,11 +108,28 @@ final class AnalyticsModule extends AbstractModule implements ApiDocSource
             return self::forget($c, $req, $res, time());
         });
 
+        // Read counts per path for a public site's own "most read" lists.
+        // A server-side read by the site (site key), never a browser call.
+        $app->get('/content/analytics/reads', function (Request $req, Response $res) use ($c): Response {
+            return self::reads($c, $req, $res, time());
+        });
+
         foreach (self::REPORTS as $name) {
             $app->get("/analytics/{$name}", function (Request $req, Response $res) use ($c, $name): Response {
                 return self::report($c, $name, $req, $res);
             });
         }
+    }
+
+    /**
+     * Only the site's server-side read. The beacon and the erasure route are
+     * browser calls and must never sit behind a site key.
+     *
+     * @return string[]
+     */
+    public function siteKeyRoutes(): array
+    {
+        return ['/content/analytics'];
     }
 
     /** @return list<array<string, mixed>> */
@@ -214,6 +232,43 @@ final class AnalyticsModule extends AbstractModule implements ApiDocSource
             return self::json($res, ['error' => 'unavailable'], 503);
         }
         return self::json($res, ['removed' => $removed]);
+    }
+
+    /**
+     * Page views per path — day totals only, nothing about who read what.
+     * Answers an empty list on any failure: a "most read" tab degrades to
+     * newest-first, it never breaks a page.
+     */
+    public static function reads(?ContainerInterface $c, Request $req, Response $res, int $now): Response
+    {
+        $q = $req->getQueryParams();
+        $site = is_string($q['site'] ?? null) && Sites::isSite($q['site']) ? $q['site'] : null;
+        if ($site === null) {
+            return self::json($res, ['error' => 'site required'], 400);
+        }
+        $days = max(1, min(self::MAX_SPAN, (int) ($q['days'] ?? 90)));
+        $limit = max(1, min(500, (int) ($q['limit'] ?? 200)));
+        $prefix = is_string($q['prefix'] ?? null) && preg_match('#^/[A-Za-z0-9/_\-]*$#', $q['prefix']) === 1 ? $q['prefix'] : null;
+        $to = Clock::day($now);
+        $from = Clock::addDays($to, -($days - 1));
+        try {
+            /** @var Metrics $metrics */
+            $metrics = $c->get(Metrics::class);
+            $out = [];
+            foreach ($metrics->counts('pageviews.path', $from, $to, $site) as $path => $views) {
+                $path = (string) $path;
+                if ($path === '' || ($prefix !== null && !str_starts_with($path, $prefix))) {
+                    continue;
+                }
+                $out[] = ['path' => $path, 'views' => $views];
+                if (count($out) >= $limit) {
+                    break;
+                }
+            }
+        } catch (\Throwable) {
+            $out = [];
+        }
+        return self::json($res, ['site' => $site, 'from' => $from, 'to' => $to, 'reads' => $out]);
     }
 
     public static function report(?ContainerInterface $c, string $name, Request $req, Response $res): Response

@@ -65,7 +65,7 @@ final class AnalyticsApiDocsTest extends TestCase
         }
     }
 
-    public function testPublicRoutesAreExactlyTheTwoBrowserEndpoints(): void
+    public function testPublicRoutesAreTheTwoBrowserCallsAndTheSiteRead(): void
     {
         $public = [];
         foreach ((new AnalyticsModule())->apiDocs() as $doc) {
@@ -74,6 +74,20 @@ final class AnalyticsApiDocsTest extends TestCase
             }
         }
         sort($public);
-        self::assertSame(['POST /analytics/collect', 'POST /analytics/forget'], $public);
+        self::assertSame(['GET /content/analytics/reads', 'POST /analytics/collect', 'POST /analytics/forget'], $public);
+    }
+
+    public function testOnlyTheSiteReadSitsBehindASiteKey(): void
+    {
+        // A browser cannot present a site key: putting the beacon or the
+        // erasure route under a protected prefix would break both the day
+        // enforcement is switched on.
+        $prefixes = (new AnalyticsModule())->siteKeyRoutes();
+        self::assertSame(['/content/analytics'], $prefixes);
+        foreach (['/analytics/collect', '/analytics/forget'] as $browser) {
+            foreach ($prefixes as $prefix) {
+                self::assertFalse(str_starts_with($browser, $prefix), $browser);
+            }
+        }
     }
 }

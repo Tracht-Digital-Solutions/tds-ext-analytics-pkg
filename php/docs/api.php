@@ -63,6 +63,26 @@ return [
             ['status' => 503, 'description' => 'Datenbank nicht erreichbar — nichts gelöscht.'],
         ],
     ],
+    [
+        'method' => 'GET',
+        'pattern' => '/content/analytics/reads',
+        'tag' => 'Öffentliche Sites',
+        'summary' => 'Seitenaufrufe je Pfad für „Am meisten gelesen“ (Site-Key)',
+        'description' => 'Serverseitiger Lesezugriff einer öffentlichen Site, geschützt über deren Site-Key. '
+            . 'Nur Summen je Pfad über das Zeitfenster, keine Besucher- oder Sitzungsdaten. Gezählt werden nur '
+            . 'Besucher mit Einwilligung „Statistik“.',
+        'auth' => 'public',
+        'params' => [
+            ['in' => 'query', 'name' => 'site', 'description' => 'Pflicht: `landing`, `blog`, `tools`, `auth` oder `shop`.'],
+            ['in' => 'query', 'name' => 'days', 'description' => 'Zeitfenster in Tagen bis heute (1–400, Standard 90).'],
+            ['in' => 'query', 'name' => 'limit', 'description' => 'Höchstens so viele Pfade (1–500, Standard 200).'],
+            ['in' => 'query', 'name' => 'prefix', 'description' => 'Nur Pfade mit diesem Anfang, z. B. `/en/`.'],
+        ],
+        'responses' => [
+            ['status' => 200, 'description' => '`{site, from, to, reads[{path, views}]}`, absteigend; leer bei einem Fehler.'],
+            ['status' => 400, 'description' => 'Keine gültige Site.'],
+        ],
+    ],
     $report('/analytics/overview', 'Kennzahlen, Vorperiode und Tagesverlauf', '`{totals, previous, series[], range}`'),
     $report('/analytics/pages', 'Seiten mit Einstiegen, Ausstiegen, Ausstiegs- und Absprungrate', '`{pages[]}`'),
     $report('/analytics/scroll', 'Scrolltiefe und erreichte Abschnitte je Seite', '`{pages[{path, reached, sections[]}]}`'),
