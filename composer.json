@@ -3,7 +3,7 @@
   "description": "Besucher-Statistik: consent-gated first-party audience measurement for the TDS public sites (backend Module).",
   "type": "library",
   "license": "proprietary",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "require": {
     "php": ">=8.1",
     "maxmind-db/reader": "^1.11",
