@@ -28,10 +28,13 @@ final class GeoIp
     {
     }
 
+    /**
+     * The system temp dir: writable on every host this runs on, and losing it
+     * costs one re-download, not data. Deliberately no env var of its own.
+     */
     public static function defaultDir(): string
     {
-        $env = getenv('ANALYTICS_GEOIP_DIR');
-        return is_string($env) && $env !== '' ? $env : sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'tds-analytics';
+        return sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'tds-analytics';
     }
 
     public function file(): string
