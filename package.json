@@ -1,6 +1,6 @@
 {
   "name": "@tracht-digital-solutions/tds-ext-analytics",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Besucher-Statistik: consent-gated first-party audience measurement for the TDS public sites — admin dashboard, widget, settings and the PHP Module.",
   "license": "UNLICENSED",
   "private": false,
