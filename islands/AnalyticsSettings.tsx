@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { Spinner, toast } from "@tracht-digital-solutions/tds-shared/components";
-import { apiFetch } from "@tracht-digital-solutions/tds-shared/api";
+import { Alert, Spinner } from "@tracht-digital-solutions/tds-shared/components";
+import { useRuntimeSettings } from "@tracht-digital-solutions/tds-shared/admin";
 import { SITES } from "./lib";
 
 /**
@@ -8,14 +8,6 @@ import { SITES } from "./lib";
  * (`/admin/settings/analytics`). All keys are non-secret; the collector reads
  * the same store on every beacon, so a change applies without a deploy.
  */
-
-interface Masked {
-  key: string;
-  secret: boolean;
-  value?: string;
-}
-
-const NS = "/admin/settings/analytics";
 
 const DEFAULTS: Record<string, string> = {
   ...Object.fromEntries(SITES.map((s) => [`site_${s.key}`, "1"])),
@@ -26,32 +18,18 @@ const DEFAULTS: Record<string, string> = {
 };
 
 export default function AnalyticsSettings() {
-  const [loaded, setLoaded] = useState(false);
+  const settings = useRuntimeSettings("analytics");
+  // Form validation; the load failure comes from the hook.
   const [status, setStatus] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
   const [values, setValues] = useState<Record<string, string>>(DEFAULTS);
 
-  const load = async () => {
-    const res = await apiFetch(NS).catch(() => null);
-    if (res === null) {
-      setStatus("Einstellungen konnten nicht geladen werden — die API ist nicht erreichbar.");
-    } else if (!res.ok) {
-      setStatus(res.status === 401 || res.status === 403 ? "Nur für Administratoren." : `Fehler (HTTP ${res.status}).`);
-    } else {
-      const d = (await res.json().catch(() => ({}))) as { settings?: Masked[] };
-      const next = { ...DEFAULTS };
-      for (const s of d.settings ?? []) {
-        if (s.key in next && typeof s.value === "string" && s.value !== "") next[s.key] = s.value;
-      }
-      setValues(next);
-      setStatus(null);
-    }
-    setLoaded(true);
-  };
-
   useEffect(() => {
-    void load();
-  }, []);
+    const next = { ...DEFAULTS };
+    for (const [key, s] of settings.settings) {
+      if (key in next && typeof s.value === "string" && s.value !== "") next[key] = s.value;
+    }
+    setValues(next);
+  }, [settings.settings]);
 
   const set = (key: string, value: string) => setValues((v) => ({ ...v, [key]: value }));
   const flag = (key: string) => values[key] === "1";
@@ -62,26 +40,11 @@ export default function AnalyticsSettings() {
       setStatus("Aufbewahrung: bitte eine ganze Zahl zwischen 7 und 400 Tagen.");
       return;
     }
-    setBusy(true);
     setStatus(null);
-    const settings: Masked[] = Object.keys(DEFAULTS).map((key) => ({ key, secret: false, value: values[key] ?? "" }));
-    const res = await apiFetch(NS, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ settings }),
-    }).catch(() => null);
-    setBusy(false);
-    if (res === null) {
-      toast.danger("Speichern fehlgeschlagen — die API ist nicht erreichbar.");
-    } else if (res.ok) {
-      toast.success("Gespeichert.");
-      void load();
-    } else {
-      toast.danger(`Speichern fehlgeschlagen (HTTP ${res.status}).`);
-    }
+    await settings.save(Object.keys(DEFAULTS).map((key) => ({ key, value: values[key] ?? "" })));
   };
 
-  if (!loaded) return <p><Spinner /></p>;
+  if (!settings.loaded) return <p><Spinner /></p>;
 
   return (
     <div className="tds-stack">
@@ -138,9 +101,9 @@ export default function AnalyticsSettings() {
           onChange={(e) => set("extra_hosts", e.target.value)}
         />
       </label>
-      {status ? <p className="tds-alert tds-alert--danger" role="alert">{status}</p> : null}
+      <Alert>{status ?? settings.error}</Alert>
       <div>
-        <button className="btn btn-primary" type="button" onClick={save} disabled={busy}>
+        <button className="btn btn-primary" type="button" onClick={save} disabled={settings.busy}>
           Speichern
         </button>
       </div>

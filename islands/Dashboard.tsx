@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from "react";
-import { Skeleton } from "@tracht-digital-solutions/tds-shared/components";
+import { Alert, Skeleton, TabPanel, Tabs } from "@tracht-digital-solutions/tds-shared/components";
 import { AreaChart, BarList, type BarRow } from "./charts";
 import {
   BROWSER_LABELS,
@@ -61,28 +61,13 @@ export default function Dashboard() {
   return (
     <div className="tds-stack tds-stack--loose">
       <FilterBar filter={filter} onChange={setFilter} />
-      <nav className="tds-toolbar" role="tablist" aria-label="Ansicht">
-        {TABS.map(([id, text]) => (
-          <button
-            key={id}
-            type="button"
-            role="tab"
-            id={`analytics-tab-${id}`}
-            aria-selected={tab === id}
-            aria-controls="analytics-panel"
-            className={tab === id ? "chip tds-tab chip-active" : "chip tds-tab"}
-            onClick={() => setTab(id)}
-          >
-            {text}
-          </button>
-        ))}
-      </nav>
-      <div id="analytics-panel" role="tabpanel" aria-labelledby={`analytics-tab-${tab}`}>
+      <Tabs label="Ansicht" idPrefix="analytics" tabs={TABS} value={tab} onChange={setTab} />
+      <TabPanel idPrefix="analytics" id={tab} active>
         {tab === "overview" ? <OverviewTab filter={filter} /> : null}
         {tab === "pages" ? <PagesTab filter={filter} /> : null}
         {tab === "sources" ? <SourcesTab filter={filter} /> : null}
         {tab === "forms" ? <FormsTab filter={filter} /> : null}
-      </div>
+      </TabPanel>
       <p className="marginalia">
         Erfasst werden nur Besucher, die der Kategorie „Statistik“ zugestimmt haben — die Zahlen sind deshalb
         kleiner als die tatsächliche Reichweite. Keine IP-Adressen, keine Formularinhalte, keine Drittanbieter.
@@ -151,9 +136,9 @@ function Section<T>({ report, children }: { report: Loaded<T & Meta>; children: 
   }
   if (report.state === "error") {
     return (
-      <p className="tds-alert tds-alert--danger" role="alert">
+      <Alert>
         {report.message}
-      </p>
+      </Alert>
     );
   }
   return <>{children(report.data)}</>;
