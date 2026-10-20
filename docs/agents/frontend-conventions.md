@@ -94,8 +94,9 @@ so it can't be double-submitted. Grep `method: "DELETE"` when you add one.
 `npm run lint:primitives` enforces the class rules, including a `<table>` without
 `tds-table`, a flex/grid table cell and a `btn-*` variant that doesn't exist in tds-shared.
 It is a **regex scan**, so a tag name written inside a comment counts as markup; name
-elements in prose. The script is a copy of the seed in
-`tds-ext-template-pkg`; change it there and propagate.
+elements in prose. The script is tds-shared's
+`tds-lint-primitives` bin (since 0.59); change it there, never in a local copy (see
+`tds-ext-template-pkg/docs/agents/lint-primitives.md`).
 
 ## Routes inside the host
 
@@ -108,9 +109,8 @@ renders only its `<section>`, never a full `<html>`.
 import { apiFetch } from "@tracht-digital-solutions/tds-shared/api";
 import { toast } from "@tracht-digital-solutions/tds-shared/components";
 
-const api = apiFetch; // sends the session cookie, resolves the API base
-
-const res = await api("/thing", { method: "PUT", body });
+// apiFetch sends the session cookie and resolves the API base; never alias it.
+const res = await apiFetch("/thing", { method: "PUT", body });
 if (res.ok) toast.success("Gespeichert.");
 else toast.danger(`Speichern fehlgeschlagen (HTTP ${res.status}).`);
 ```
